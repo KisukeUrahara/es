@@ -1,0 +1,106 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+//package feature_generation;
+//import feature_generation.Functions;
+import Functions;
+/**
+ *
+ * @author prash
+ */
+import java.io.*;
+public class Feature_Generation {
+
+    /**
+     * @param args the command line arguments
+     */
+
+    static void display(double[][] a,String name)
+    {
+        System.out.println("Name of array is"+name+":");
+        for(int i=0;i<a[0].length;i++)
+        {for(int j=0;j<a.length;j++)
+            System.out.print("\t"+a[i][j]);
+        System.out.println();
+        }
+    }
+
+    public static void main(String[] args) {
+        // TODO code application logic here
+        Functions worker=new Functions();
+        int K=8;
+        double pi=Math.PI;
+
+        //The next line will be replaced by a function call to read the array from the csv file. Will be updated based on whether it needs to be looped over a folder or not
+        double d[][]= {{1,2,3,4},{5,6,7,8},{8,9,1,2},{2,5,6,7}};
+        //double d[][]= {{3,3,3,3},{3,3,3,3},{3,3,3,3},{3,3,3,3}};
+        int m1=4;
+        int m2=4;
+        int prod=m1*m2;
+        int temp[] = new int[m1];
+        double w1_temp[]=new double[m1];
+        double w2_temp[]=new double[m2];
+        double Xtilde[][][]=new double[m1][m2][K];
+        for (int i=0;i<m1;i++)
+            w1_temp[i]=2*pi*i/m1;
+        for (int i=0;i<m2;i++)
+            w2_temp[i]=2*pi*i/m2;
+        int params[]=new int[2];
+
+        params[0]=1;
+        params[1]=m2;
+        int flip=1;
+        double ans[][],w1[][],w2[][];
+        w1=worker.myretmap(w1_temp,params,flip);
+        params[0]=m1;
+        params[1]=1;
+        flip=0;
+        w2=worker.myretmap(w2_temp,params,flip);
+
+        double w[][]=worker.mat_pyth(w1,w2);
+        double wbar[][]=new double[m1][m2];
+        for( int i=0;i<m1;i++)
+            for(int j=0;j<m2;j++)
+            {
+                int f1=(w1[i][j]>0?1:0);
+                int f2=(w2[i][j]>0?1:0);
+                double tempsum=(Math.pow((2.0*pi-w1[i][j]),2))*f1+(Math.pow((pi*2-w2[i][j]),2))*f2;
+
+                wbar[i][j]=Math.sqrt(tempsum);
+                for(int c=0;c<K;c++)Xtilde[i][j][c]=0;
+            }
+
+        double delta[][]=worker.minarray(wbar,w);
+        // w gets converted to its Fourier Transforms in-place itself
+        //display(w,"W");
+        //double wtry[][]= {{3,3,3,3},{3,3,3,3},{3,3,3,3},{3,3,3,3}};
+        //double wtry[][]= {{2,3},{4,2}};
+        double[][] z=worker.fft2(w);
+        //display(z," Z");
+        for(int i=0;i<m1;i++)
+            for(int j=0;j<m2;j++)
+                delta[i][j]/=(2*pi);
+        /*
+        double[][] W=worker.binopdf(3,7,delta);
+        display(W," W");*/
+        for(int k=0;k<K;k++)
+        {
+            double[][] W=worker.binopdf(k,K-1,delta);
+            for(int i=0;i<m1;i++)
+                for(int j=0;j<m2;j++)
+                    W[i][j]*=d[i][j];
+            double[][] x=worker.fft2(W);
+            //I am displaying x 8 times here. Each time x is displayed is each of the 8 constituent features generated.
+            display(x, " X");
+            for(int i=0;i<m1;i++)
+                for(int j=0;j<m2;j++)
+                {
+
+                    Xtilde[i][j][k]=x[i][j]/(prod);
+                }
+        }
+
+    }
+  }
